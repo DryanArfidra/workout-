@@ -1,121 +1,222 @@
-import React, { useState, useEffect } from 'react';
-import { motivationalQuotes } from '../data/workouts';
+import React, { useEffect, useState } from 'react';
+import { useAuthStore } from '../store/authStore';
+import { useAmalanStore } from '../store/amalanStore';
+import { useWaterStore } from '../store/waterStore';
+import { useWorkoutStore } from '../store/workoutStore';
+import { useWalletStore } from '../store/walletStore';
+import ProgressBar from '../components/common/ProgressBar';
+import Card from '../components/common/Card';
+import { 
+  getGreeting, 
+  getRandomQuote,
+  WORKOUT_TRANSLATIONS,
+  AMALAN_TRANSLATIONS 
+} from '../utils/constants';
+import { formatDate } from '../utils/dateUtils';
+import { 
+  CheckCircleIcon, 
+  XCircleIcon,
+  FireIcon,
+  CurrencyDollarIcon,
+  BeakerIcon,
+  BookOpenIcon
+} from '@heroicons/react/24/outline';
 
-interface HomeProps {
-  onStartWorkout: () => void;
-  weeklyProgress: number;
-}
 
-const Home: React.FC<HomeProps> = ({ onStartWorkout, weeklyProgress }) => {
-  const [currentQuote, setCurrentQuote] = useState('');
-  const [streak, setStreak] = useState(0);
-
+const Home: React.FC = () => {
+  const currentUser = useAuthStore((state) => state.getCurrentUser());
+  const getTodayAmalan = useAmalanStore((state) => state.getTodayAmalan);
+  const getTodayWater = useWaterStore((state) => state.getTodayWater);
+  const getTodayWorkout = useWorkoutStore((state) => state.getTodayWorkout);
+  const getWallet = useWalletStore((state) => state.getWallet);
+  
+  const [quote, setQuote] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
+  
   useEffect(() => {
-    // Random quote on load
-    const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-    setCurrentQuote(randomQuote);
-    
-    // Simulate streak from localStorage (if existed)
-    const savedStreak = localStorage.getItem('workout-streak');
-    if (savedStreak) {
-      setStreak(parseInt(savedStreak));
-    }
+    setQuote(getRandomQuote());
+    setCurrentDate(formatDate(new Date().toISOString()));
   }, []);
 
+  if (!currentUser) return null;
+
+  const amalan = getTodayAmalan(currentUser.id);
+  const water = getTodayWater(currentUser.id);
+  const workout = getTodayWorkout(currentUser.id);
+  const wallet = getWallet(currentUser.id);
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-          Transform Your Body at Home
-        </h1>
-        <p className="text-xl text-gray-600 mb-8">
-          No equipment needed • 10-20 minutes daily • Perfect for beginners
-        </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl shadow-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">{getGreeting()}, {currentUser.username}!</h1>
+        <p className="text-emerald-100">{currentDate}</p>
+        <div className="mt-4">
+          <p className="text-emerald-50 italic">"{quote}"</p>
+        </div>
       </div>
-      
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-        <div className="bg-white rounded-2xl p-8 card-shadow">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Weekly Progress</h2>
-          <div className="mb-6">
-            <div className="flex justify-between mb-2">
-              <span className="font-semibold">This Week</span>
-              <span className="font-bold text-primary-500">{Math.round(weeklyProgress)}%</span>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Amalan Card */}
+        <Card className="border-l-4 border-l-emerald-500">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center mb-2">
+                <BookOpenIcon className="w-5 h-5 text-emerald-600 mr-2" />
+                <h3 className="font-semibold text-gray-800">Amalan Sunnah</h3>
+              </div>
+              <p className="text-2xl font-bold text-emerald-700">
+                {amalan.completedCount}/{amalan.totalCount}
+              </p>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-4">
-              <div
-                className="h-4 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 transition-all duration-1000"
-                style={{ width: `${weeklyProgress}%` }}
-              ></div>
+            <div className={`p-2 rounded-full ${amalan.completedCount === amalan.totalCount ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+              {amalan.completedCount === amalan.totalCount ? (
+                <CheckCircleIcon className="w-6 h-6 text-emerald-600" />
+              ) : (
+                <XCircleIcon className="w-6 h-6 text-gray-400" />
+              )}
             </div>
           </div>
-          
-          {streak > 0 && (
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <div className="bg-yellow-500 text-white rounded-full size-10 flex items-center justify-center mr-3">
-                  <span className="font-bold">{streak}</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">🔥 Consistency Streak!</p>
-                  <p className="text-sm text-gray-600">You've worked out for {streak} consecutive days!</p>
-                </div>
+          <div className="mt-4">
+            <ProgressBar progress={(amalan.completedCount / amalan.totalCount) * 100} />
+          </div>
+        </Card>
+
+        {/* Water Card */}
+        <Card className="border-l-4 border-l-blue-500">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center mb-2">
+                <BeakerIcon className="w-5 h-5 text-blue-600 mr-2" />
+                <h3 className="font-semibold text-gray-800">Air Putih</h3>
+              </div>
+              <p className="text-2xl font-bold text-blue-700">
+                {water.current}/{water.target}
+              </p>
+            </div>
+            <div className={`p-2 rounded-full ${water.current >= water.target ? 'bg-blue-100' : 'bg-gray-100'}`}>
+              <BeakerIcon className={`w-6 h-6 ${water.current >= water.target ? 'text-blue-600' : 'text-gray-400'}`} />
+            </div>
+          </div>
+          <div className="mt-4">
+            <ProgressBar 
+              progress={(water.current / water.target) * 100} 
+              color="blue"
+            />
+          </div>
+        </Card>
+
+        {/* Workout Card */}
+        <Card className="border-l-4 border-l-amber-500">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center mb-2">
+                <FireIcon className="w-5 h-5 text-amber-600 mr-2" />
+                <h3 className="font-semibold text-gray-800">Olahraga</h3>
+              </div>
+              <p className="text-lg font-bold text-amber-700">
+                {WORKOUT_TRANSLATIONS[workout.workoutType]}
+              </p>
+              <p className="text-sm text-gray-600">{workout.duration} menit</p>
+            </div>
+            <div className={`p-2 rounded-full ${workout.completed ? 'bg-amber-100' : 'bg-gray-100'}`}>
+              <FireIcon className={`w-6 h-6 ${workout.completed ? 'text-amber-600' : 'text-gray-400'}`} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <input
+              type="checkbox"
+              checked={workout.completed}
+              readOnly
+              className="w-5 h-5 text-amber-600 rounded"
+            />
+            <span className="ml-2 text-sm text-gray-700">
+              {workout.completed ? 'Sudah selesai' : 'Belum olahraga'}
+            </span>
+          </div>
+        </Card>
+
+        {/* Wallet Card */}
+        <Card className="border-l-4 border-l-purple-500">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center mb-2">
+                <CurrencyDollarIcon className="w-5 h-5 text-purple-600 mr-2" />
+                <h3 className="font-semibold text-gray-800">Tabungan</h3>
+              </div>
+              <p className="text-2xl font-bold text-purple-700">
+                Rp {wallet.balance.toLocaleString('id-ID')}
+              </p>
+              <p className="text-sm text-gray-600">
+                Target: Rp {wallet.target.toLocaleString('id-ID')}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <ProgressBar 
+              progress={(wallet.balance / wallet.target) * 100} 
+              color="purple"
+            />
+          </div>
+        </Card>
+      </div>
+
+      {/* Amalan Details */}
+      <Card title="Amalan Hari Ini">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Object.entries(amalan.amalan).map(([key, value]) => (
+            <div
+              key={key}
+              className={`flex items-center justify-between p-3 rounded-lg ${
+                value ? 'bg-emerald-50 border border-emerald-200' : 'bg-gray-50'
+              }`}
+            >
+              <span className={`font-medium ${value ? 'text-emerald-700' : 'text-gray-700'}`}>
+                {AMALAN_TRANSLATIONS[key]}
+              </span>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                value ? 'bg-emerald-500' : 'bg-gray-300'
+              }`}>
+                {value ? (
+                  <CheckCircleIcon className="w-4 h-4 text-white" />
+                ) : (
+                  <XCircleIcon className="w-4 h-4 text-gray-500" />
+                )}
               </div>
             </div>
-          )}
+          ))}
         </div>
-        
-        <div className="bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl p-8 text-white card-shadow">
-          <h2 className="text-2xl font-bold mb-4">Today's Motivation</h2>
-          <div className="mb-6">
-            <p className="text-lg italic">"{currentQuote}"</p>
-          </div>
-          <div className="glass-effect rounded-lg p-4">
-            <p className="font-semibold mb-2">Daily Goal:</p>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center">
-                <div className="size-2 bg-green-400 rounded-full mr-2"></div>
-                Complete today's workout (10-20 min)
-              </li>
-              <li className="flex items-center">
-                <div className="size-2 bg-blue-400 rounded-full mr-2"></div>
-                Maintain proper form in all exercises
-              </li>
-              <li className="flex items-center">
-                <div className="size-2 bg-accent-500 rounded-full mr-2"></div>
-                Drink plenty of water throughout
-              </li>
-            </ul>
-          </div>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card title="Aksi Cepat">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors text-left">
+            <div className="flex items-center">
+              <div className="p-2 bg-emerald-100 rounded-lg mr-3">
+                <BeakerIcon className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">Tambah Air</h4>
+                <p className="text-sm text-gray-600">Tambahkan 1 gelas air putih</p>
+              </div>
+            </div>
+          </button>
+          
+          <button className="p-4 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors text-left">
+            <div className="flex items-center">
+              <div className="p-2 bg-amber-100 rounded-lg mr-3">
+                <FireIcon className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">Tandai Olahraga</h4>
+                <p className="text-sm text-gray-600">Tandai sudah olahraga hari ini</p>
+              </div>
+            </div>
+          </button>
         </div>
-      </div>
-      
-      <div className="text-center">
-        <button
-          onClick={onStartWorkout}
-          className="btn-primary text-lg px-8 py-4 text-xl"
-        >
-          Start Today's Workout
-        </button>
-        
-        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-xl border">
-            <p className="text-2xl font-bold text-primary-500">7</p>
-            <p className="text-gray-600">Days Program</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl border">
-            <p className="text-2xl font-bold text-primary-500">10-20</p>
-            <p className="text-gray-600">Minutes/Day</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl border">
-            <p className="text-2xl font-bold text-primary-500">0</p>
-            <p className="text-gray-600">Equipment Needed</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl border">
-            <p className="text-2xl font-bold text-primary-500">25+</p>
-            <p className="text-gray-600">Exercises</p>
-          </div>
-        </div>
-      </div>
+      </Card>
     </div>
   );
 };

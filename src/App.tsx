@@ -1,108 +1,121 @@
-import { useState, useEffect } from 'react';
-import Header from './components/Header';
-import Home from './pages/Home';
-import WeeklyWorkout from './pages/WeeklyWorkout';
-import { workoutData } from './data/workouts';
+import React, { useEffect, useState } from 'react';
+import AppRoutes from './routes/AppRoutes';
+import NotificationContainer from './layout/NontificationContainer';
+import { useAuthStore } from './store/authStore';
+import { useAmalanStore } from './store/amalanStore';
+import { useWaterStore } from './store/waterStore';
+import { useWorkoutStore } from './store/workoutStore';
+import { getTodayDate, isSameDay } from './utils/dateUtils';
+import { useNotifications } from './utils/nontificationManager';
 
-function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'workout'>('home');
-  const [weeklyProgress, setWeeklyProgress] = useState(0);
+const App: React.FC = () => {
+  const resetDailyAmalan = useAmalanStore((state) => state.resetDailyAmalan);
+  const resetDailyWater = useWaterStore((state) => state.resetDailyWater);
+  const resetDailyWorkout = useWorkoutStore((state) => state.resetDailyWorkout);
+  const { currentUser } = useAuthStore();
+  const { showInfo } = useNotifications();
+  
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [dailyResetChecked, setDailyResetChecked] = useState(false);
 
-  // Calculate weekly progress
+  // Initialize daily reset check
   useEffect(() => {
-    const calculateProgress = () => {
-      const savedData = localStorage.getItem('workout-progress');
-      if (savedData) {
-        const data = JSON.parse(savedData) as {
-          completedExercises?: Record<string, number[]>;
-        };
-
-        const completedExercises: Record<string, number[]> =
-          data.completedExercises || {};
-
-        const totalExercises = workoutData.reduce(
-          (sum, day) => sum + day.exercises.length,
-          0
+    const checkAndResetDailyData = () => {
+      const today = getTodayDate();
+      const lastReset = localStorage.getItem('lastDailyReset');
+      
+      // If it's a new day, reset all daily data
+      if (!lastReset || !isSameDay(lastReset, today)) {
+        console.log('Resetting daily data for new day:', today);
+        
+        resetDailyAmalan();
+        resetDailyWater();
+        resetDailyWorkout();
+        
+        // Update all stores to ensure today's data is created
+        localStorage.setItem('lastDailyReset', today);
+        
+        // Show notification
+        showInfo(
+          'Hari Baru Dimulai!',
+          'Data harian telah direset. Selamat beraktivitas!',
+          5000
         );
+        
+        // Force re-initialization of today's data
+        if (currentUser) {
+          // Trigger creation of today's records by accessing them
+          const amalanStore = useAmalanStore.getState();
+          const waterStore = useWaterStore.getState();
+          const workoutStore = useWorkoutStore.getState();
+          
+          amalanStore.getTodayAmalan(currentUser.id);
+          waterStore.getTodayWater(currentUser.id);
+          workoutStore.getTodayWorkout(currentUser.id);
+        }
+      }
+      
+      setDailyResetChecked(true);
+      setIsInitialized(true);
+    };
 
-        const completedTotal = Object.values(completedExercises).reduce(
-          (sum, arr) => sum + arr.length,
-          0
-        );
+    // Check immediately
+    checkAndResetDailyData();
 
-        const progress =
-          totalExercises > 0 ? (completedTotal / totalExercises) * 100 : 0;
+    // Set up interval to check every minute (in case app runs across midnight)
+    const intervalId = setInterval(checkAndResetDailyData, 60000); // 1 minute
 
-        setWeeklyProgress(progress);
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, [resetDailyAmalan, resetDailyWater, resetDailyWorkout, currentUser, showInfo]);
+
+  // Check for multi-tab synchronization
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'lastDailyReset') {
+        // If another tab updated the reset date, re-check
+        const today = getTodayDate();
+        const lastReset = localStorage.getItem('lastDailyReset');
+        
+        if (!lastReset || !isSameDay(lastReset, today)) {
+          window.location.reload(); // Reload to ensure fresh data
+        }
       }
     };
 
-    calculateProgress();
-    // Update progress every 30 seconds in case of changes in other tabs
-    const interval = setInterval(calculateProgress, 30000);
-    return () => clearInterval(interval);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Show loading while initializing
+  if (!isInitialized || !dailyResetChecked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
+            <span className="text-2xl text-emerald-600">🕌</span>
+          </div>
+          <h2 className="text-xl font-semibold text-emerald-700 mb-2">
+            My Islamic Tracker
+          </h2>
+          <p className="text-gray-600">Menyiapkan aplikasi...</p>
+          <div className="mt-4">
+            <div className="w-48 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-600 animate-pulse" style={{ width: '70%' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <Header />
-
-      <nav className="bg-white shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex space-x-4 py-3">
-            <button
-              onClick={() => setCurrentPage('home')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                currentPage === 'home'
-                  ? 'bg-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              Home
-            </button>
-            <button
-              onClick={() => setCurrentPage('workout')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                currentPage === 'workout'
-                  ? 'bg-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              Weekly Workout
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="pb-12">
-        {currentPage === 'home' ? (
-          <Home
-            onStartWorkout={() => setCurrentPage('workout')}
-            weeklyProgress={weeklyProgress}
-          />
-        ) : (
-          <WeeklyWorkout />
-        )}
-      </main>
-
-      <footer className="bg-gray-800 text-white py-6 mt-12">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-lg font-semibold mb-2">
-            Daily Home Workout Tracker
-          </p>
-          <p className="text-gray-400 text-sm">
-            Designed for height: 168cm • Weight: 75kg • Goal: Fat Loss + Basic Muscle
-          </p>
-          <p className="text-gray-400 text-sm mt-2">
-            No equipment needed • Beginner friendly • 10-20 minutes daily
-          </p>
-          <div className="mt-4 pt-4 border-t border-gray-700 text-xs text-gray-500">
-            <p>💪 Consistency is key to transformation. Track daily, stay motivated!</p>
-          </div>
-        </div>
-      </footer>
+    <div className="App">
+      <NotificationContainer />
+      <AppRoutes />
+      
     </div>
   );
-}
+};
 
 export default App;
