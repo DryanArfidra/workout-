@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import BottomNav from '../components/layout/BottomNav';
@@ -9,11 +9,17 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (!isAuthenticated && location.pathname !== '/login' && location.pathname !== '/register') {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (
+      !isAuthenticated &&
+      location.pathname !== '/login' &&
+      location.pathname !== '/register'
+    ) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
 
+  // Jika belum login dan sedang di login/register → render child
   if (!isAuthenticated) {
     return <Outlet />;
   }
@@ -21,7 +27,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
-        {/* Sidebar for desktop */}
+        {/* Sidebar desktop */}
         <div className="hidden md:block">
           <Sidebar />
         </div>
@@ -33,7 +39,7 @@ const MainLayout: React.FC = () => {
           </div>
         </main>
 
-        {/* Bottom navigation for mobile */}
+        {/* Bottom nav mobile */}
         <div className="md:hidden fixed bottom-0 left-0 right-0">
           <BottomNav />
         </div>
