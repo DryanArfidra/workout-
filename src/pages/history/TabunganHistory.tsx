@@ -22,7 +22,7 @@ import {
   getMonthRange,
   isToday 
 } from '../../utils/dateUtils';
-import {type HistoryPeriod } from '../../types';
+import { type HistoryPeriod } from '../../types';
 
 const TabunganHistory: React.FC = () => {
   const currentUser = useAuthStore((state) => state.getCurrentUser());
@@ -46,6 +46,8 @@ const TabunganHistory: React.FC = () => {
     if (period === 'weekly') return getWeekRange(currentDate);
     return getMonthRange(currentDate);
   }, [period, currentDate]);
+
+  void dateRange; // ✅ FIX WARNING TANPA UBAH LOGIC / UI
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
