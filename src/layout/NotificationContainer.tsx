@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Notification from '../components/common/Nontification';
+import Notification from '../components/common/Notification';
 import {
   notificationManager,
   type Notification as NotificationItem,
