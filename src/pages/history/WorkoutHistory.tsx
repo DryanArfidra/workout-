@@ -27,7 +27,6 @@ import {type HistoryPeriod } from '../../types';
 const WorkoutHistory: React.FC = () => {
   const currentUser = useAuthStore((state) => state.getCurrentUser());
   const getWorkoutHistory = useWorkoutStore((state) => state.getWorkoutHistory);
-  const getWorkoutStats = useWorkoutStore((state) => state.getWorkoutStats);
   
   const [period, setPeriod] = useState<HistoryPeriod>('weekly');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -36,9 +35,8 @@ const WorkoutHistory: React.FC = () => {
   if (!currentUser) return null;
 
   const history = getWorkoutHistory(currentUser.id, period);
-  const stats = getWorkoutStats(currentUser.id);
 
-  const dateRange = useMemo(() => {
+  useMemo(() => {
     if (period === 'weekly') return getWeekRange(currentDate);
     return getMonthRange(currentDate);
   }, [period, currentDate]);

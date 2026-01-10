@@ -16,7 +16,6 @@ import {type HistoryPeriod } from '../../types';
 const WaterHistory: React.FC = () => {
   const currentUser = useAuthStore((state) => state.getCurrentUser());
   const getWaterHistory = useWaterStore((state) => state.getWaterHistory);
-  const getWaterStats = useWaterStore((state) => state.getWaterStats);
   
   const [period, setPeriod] = useState<HistoryPeriod>('weekly');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -24,9 +23,8 @@ const WaterHistory: React.FC = () => {
   if (!currentUser) return null;
 
   const history = getWaterHistory(currentUser.id, period);
-  const stats = getWaterStats(currentUser.id);
 
-  const dateRange = useMemo(() => {
+  useMemo(() => {
     if (period === 'weekly') return getWeekRange(currentDate);
     return getMonthRange(currentDate);
   }, [period, currentDate]);
@@ -193,7 +191,7 @@ const WaterHistory: React.FC = () => {
       <Card title="Visualisasi Konsumsi">
         <div className="space-y-4">
           <div className="grid grid-cols-7 gap-2">
-            {history.slice(0, 7).map((day, index) => {
+            {history.slice(0, 7).map((day) => {
               const percentage = (day.current / day.target) * 100;
               const height = Math.max(20, (percentage / 100) * 80);
               
