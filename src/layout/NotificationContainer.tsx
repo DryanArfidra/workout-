@@ -3,7 +3,7 @@ import Notification from '../components/common/Nontification';
 import {
   notificationManager,
   type Notification as NotificationItem,
-} from '../utils/nontificationManager';
+} from '../utils/notificationManager';
 
 const NotificationContainer: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>(

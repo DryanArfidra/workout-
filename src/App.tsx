@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import AppRoutes from './routes/AppRoutes';
-import NotificationContainer from './layout/NontificationContainer';
+import NotificationContainer from './layout/NotificationContainer';
 import { useAuthStore } from './store/authStore';
 import { useAmalanStore } from './store/amalanStore';
 import { useWaterStore } from './store/waterStore';
 import { useWorkoutStore } from './store/workoutStore';
 import { getTodayDate, isSameDay } from './utils/dateUtils';
-import { useNotifications } from './utils/nontificationManager';
+import { useNotifications } from './utils/notificationManager';
 
 const App: React.FC = () => {
   const resetDailyAmalan = useAmalanStore((state) => state.resetDailyAmalan);
