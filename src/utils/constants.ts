@@ -12,11 +12,87 @@ export const ISLAMIC_QUOTES = [
 ];
 
 export const WORKOUT_TRANSLATIONS: Record<string, string> = {
-  pushup: 'Push Up',
-  situp: 'Sit Up',
-  squat: 'Squat',
-  plank: 'Plank',
-  jumping_jacks: 'Jumping Jacks',
+  'chest-triceps': 'Dada & Trisep',
+  'core': 'Perut (Core)',
+  'legs-glutes': 'Kaki & Bokong',
+  'shoulders-back': 'Bahu & Punggung',
+  'full-body-light': 'Full Body Ringan',
+  'core-stretching': 'Core + Stretching',
+  'full-workout': 'FULL OLAHRAGA'
+};
+
+export const WORKOUT_DETAILS: Record<string, {
+  day: string;
+  duration: number;
+  exercises: string[];
+  workTime: number;
+  restTime: number;
+  rounds: number;
+  focus?: string;
+}> = {
+  'chest-triceps': {
+    day: 'Senin',
+    duration: 10,
+    exercises: ['Push-up biasa', 'Push-up lutut', 'Diamond push-up', 'Plank shoulder tap'],
+    workTime: 40,
+    restTime: 20,
+    rounds: 2
+  },
+  'core': {
+    day: 'Selasa',
+    duration: 10,
+    exercises: ['Sit-up', 'Leg raise', 'Russian twist', 'Plank'],
+    workTime: 40,
+    restTime: 20,
+    rounds: 2
+  },
+  'legs-glutes': {
+    day: 'Rabu',
+    duration: 10,
+    exercises: ['Squat', 'Lunges kanan & kiri', 'Wall sit', 'Calf raise'],
+    workTime: 40,
+    restTime: 20,
+    rounds: 2
+  },
+  'shoulders-back': {
+    day: 'Kamis',
+    duration: 10,
+    exercises: ['Arm circle', 'Push-up lebar', 'Superman hold', 'Plank raise'],
+    workTime: 40,
+    restTime: 20,
+    rounds: 2
+  },
+  'full-body-light': {
+    day: 'Jumat',
+    duration: 10,
+    exercises: ['Jumping jack', 'Squat', 'Push-up ringan', 'Plank'],
+    workTime: 40,
+    restTime: 20,
+    rounds: 2,
+    focus: 'Tidak terlalu berat (aktif recovery)'
+  },
+  'core-stretching': {
+    day: 'Sabtu',
+    duration: 10,
+    exercises: ['Plank', 'Mountain climber pelan', 'Stretch paha, punggung, bahu'],
+    workTime: 30,
+    restTime: 30,
+    rounds: 2,
+    focus: 'Fokus pemulihan'
+  },
+  'full-workout': {
+    day: 'Minggu',
+    duration: 40,
+    exercises: [
+      'Pemanasan (5 menit) - Jumping jack ringan, Arm & leg swing',
+      'Workout utama (20–25 menit) - Push-up, Squat, Lunges, Sit-up, Mountain climber, Plank',
+      'Pendinginan (5–10 menit) - Stretch seluruh badan'
+    ],
+    workTime: 40,
+    restTime: 20,
+    rounds: 4,
+    focus: 'FULL OLAHRAGA'
+  }
 };
 
 export const TRANSACTION_CATEGORIES = {

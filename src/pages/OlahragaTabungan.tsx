@@ -16,7 +16,7 @@ import {
   ChartBarIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline';
-import { WORKOUT_TRANSLATIONS, TRANSACTION_CATEGORIES } from '../utils/constants';
+import { WORKOUT_TRANSLATIONS, WORKOUT_DETAILS, TRANSACTION_CATEGORIES } from '../utils/constants';
 import { formatDate } from '../utils/dateUtils';
 
 const OlahragaTabungan: React.FC = () => {
@@ -35,6 +35,7 @@ const OlahragaTabungan: React.FC = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [target, setTarget] = useState('');
+  const [forceUpdate, setForceUpdate] = useState(0); // Untuk force re-render
 
   if (!currentUser) return null;
 
@@ -43,8 +44,94 @@ const OlahragaTabungan: React.FC = () => {
   const wallet = getWallet(currentUser.id);
   const transactions = getTransactionHistory(currentUser.id, 'daily').slice(0, 5);
 
+  // Fungsi untuk mendapatkan workout detail yang aman
+  const getSafeWorkoutDetail = (workoutType: string) => {
+    // Check if workoutType exists in new system
+    if (WORKOUT_DETAILS[workoutType]) {
+      return WORKOUT_DETAILS[workoutType];
+    }
+    
+    // If old workout type, map to today's workout
+    const oldWorkoutTypes = ['pushup', 'situp', 'squat', 'plank', 'jumping_jacks'];
+    if (oldWorkoutTypes.includes(workoutType)) {
+      // Get today's workout instead
+      const dayOfWeek = new Date().getDay();
+      let newWorkoutType: string;
+      
+      switch (dayOfWeek) {
+        case 1: // Monday
+          newWorkoutType = 'chest-triceps';
+          break;
+        case 2: // Tuesday
+          newWorkoutType = 'core';
+          break;
+        case 3: // Wednesday
+          newWorkoutType = 'legs-glutes';
+          break;
+        case 4: // Thursday
+          newWorkoutType = 'shoulders-back';
+          break;
+        case 5: // Friday
+          newWorkoutType = 'full-body-light';
+          break;
+        case 6: // Saturday
+          newWorkoutType = 'core-stretching';
+          break;
+        case 0: // Sunday
+        default:
+          newWorkoutType = 'full-workout';
+          break;
+      }
+      
+      return WORKOUT_DETAILS[newWorkoutType] || getDefaultWorkoutDetail();
+    }
+    
+    // Fallback to default workout for today
+    return getDefaultWorkoutDetail();
+  };
+
+  // Fungsi untuk mendapatkan default workout berdasarkan hari ini
+  const getDefaultWorkoutDetail = () => {
+    const dayOfWeek = new Date().getDay();
+    let workoutType: string;
+    
+    switch (dayOfWeek) {
+      case 1: workoutType = 'chest-triceps'; break;
+      case 2: workoutType = 'core'; break;
+      case 3: workoutType = 'legs-glutes'; break;
+      case 4: workoutType = 'shoulders-back'; break;
+      case 5: workoutType = 'full-body-light'; break;
+      case 6: workoutType = 'core-stretching'; break;
+      case 0: 
+      default: workoutType = 'full-workout'; break;
+    }
+    
+    return WORKOUT_DETAILS[workoutType] || {
+      day: 'Hari ini',
+      duration: 10,
+      exercises: ['Lakukan aktivitas fisik ringan selama 10 menit'],
+      workTime: 40,
+      restTime: 20,
+      rounds: 2,
+      focus: 'Tetap aktif dan sehat!'
+    };
+  };
+
+  const workoutDetail = getSafeWorkoutDetail(workout.workoutType);
+  const workoutTranslation = WORKOUT_TRANSLATIONS[workout.workoutType] || 'Olahraga';
+
   const handleToggleWorkout = () => {
     toggleWorkout(currentUser.id);
+    
+    // Force re-render untuk update UI
+    setForceUpdate(prev => prev + 1);
+    
+    // Tambahkan small delay untuk memastikan state sudah update
+    setTimeout(() => {
+      // Ambil workout terbaru untuk memastikan data fresh
+      const updatedWorkout = getTodayWorkout(currentUser.id);
+      console.log('Workout status updated:', updatedWorkout.completed);
+    }, 50);
   };
 
   const handleSubmitTransaction = (e: React.FormEvent) => {
@@ -86,6 +173,9 @@ const OlahragaTabungan: React.FC = () => {
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
+  // Key untuk force re-render komponen workout
+  const workoutKey = `workout-${workout.id}-${workout.completed}-${forceUpdate}`;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -117,34 +207,74 @@ const OlahragaTabungan: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Olahraga */}
         <div className="space-y-6">
-          <Card title="Olahraga Harian">
+          <Card title="Olahraga Harian" key={workoutKey}>
             <div className="flex items-start justify-between mb-6">
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center mb-2">
                   <div className={`p-2 rounded-lg mr-3 ${workout.completed ? 'bg-amber-100' : 'bg-gray-100'}`}>
                     <FireIcon className={`w-6 h-6 ${workout.completed ? 'text-amber-600' : 'text-gray-400'}`} />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-bold text-gray-800 text-lg">
-                      {WORKOUT_TRANSLATIONS[workout.workoutType]}
+                      {workoutDetail.day} - {workoutTranslation}
                     </h3>
-                    <p className="text-sm text-gray-600">{workout.duration} menit</p>
+                    <p className="text-sm text-gray-600">{workoutDetail.duration} menit • {workoutDetail.rounds} ronde</p>
                   </div>
                 </div>
-                <p className="text-gray-600 mt-2">
-                  Lakukan {WORKOUT_TRANSLATIONS[workout.workoutType].toLowerCase()} selama {workout.duration} menit
-                </p>
+                
+                {/* Gerakan */}
+                <div className="mt-4">
+                  <p className="text-gray-700 font-medium mb-2">Gerakan:</p>
+                  <ul className="space-y-1">
+                    {workoutDetail.exercises.map((exercise, index) => (
+                      <li key={index} className="flex items-start text-gray-600">
+                        <span className="mr-2">•</span>
+                        <span className="text-sm">{exercise}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                {/* Detail waktu dan ronde */}
+                <div className="mt-4 p-3 bg-amber-50 rounded-lg">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="text-gray-700">Waktu Kerja:</div>
+                    <div className="font-medium">{workoutDetail.workTime} detik</div>
+                    
+                    <div className="text-gray-700">Waktu Istirahat:</div>
+                    <div className="font-medium">{workoutDetail.restTime} detik</div>
+                    
+                    <div className="text-gray-700">Jumlah Ronde:</div>
+                    <div className="font-medium">{workoutDetail.rounds} ronde</div>
+                    
+                    {workoutDetail.focus && (
+                      <>
+                        <div className="text-gray-700 col-span-2 mt-1 pt-2 border-t border-amber-200">Fokus:</div>
+                        <div className="font-medium text-amber-700 col-span-2">
+                          {workoutDetail.focus}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
               
               <button
                 onClick={handleToggleWorkout}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                className={`ml-4 px-4 py-2 rounded-lg font-semibold transition-colors min-w-[120px] ${
                   workout.completed
-                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
                 }`}
               >
-                {workout.completed ? '✓ Selesai' : 'Tandai'}
+                {workout.completed ? (
+                  <>
+                    <CheckCircleIcon className="w-5 h-5 inline mr-2" />
+                    Selesai
+                  </>
+                ) : (
+                  'Tandai Selesai'
+                )}
               </button>
             </div>
 
@@ -178,20 +308,38 @@ const OlahragaTabungan: React.FC = () => {
             </div>
 
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <h4 className="font-semibold text-gray-800 mb-3">Jenis Olahraga Minggu Ini</h4>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(WORKOUT_TRANSLATIONS).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className={`px-3 py-1.5 rounded-full text-sm ${
-                      workout.workoutType === key
-                        ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {value}
-                  </div>
-                ))}
+              <h4 className="font-semibold text-gray-800 mb-3">Jadwal Olahraga Minggu Ini</h4>
+              <div className="space-y-2">
+                {Object.entries(WORKOUT_DETAILS).map(([key, detail]) => {
+                  const isTodayWorkout = workout.workoutType === key;
+                  const translation = WORKOUT_TRANSLATIONS[key] || key;
+                  
+                  return (
+                    <div
+                      key={key}
+                      className={`p-3 rounded-lg transition-colors ${
+                        isTodayWorkout
+                          ? 'bg-amber-100 border border-amber-300'
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            <span className="font-medium text-gray-800 mr-2">{detail.day}</span>
+                            {isTodayWorkout && (
+                              <span className="px-2 py-0.5 bg-amber-500 text-white text-xs rounded-full">
+                                HARI INI
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{translation}</p>
+                        </div>
+                        <span className="text-gray-700 font-medium ml-2">{detail.duration} menit</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </Card>
@@ -215,7 +363,7 @@ const OlahragaTabungan: React.FC = () => {
                 <div className="bg-emerald-50 p-4 rounded-lg">
                   <p className="text-sm text-emerald-800 mb-1">Total Menit</p>
                   <p className="text-2xl font-bold text-emerald-900">
-                    {workoutStats.totalWorkouts * 10}
+                    {workoutStats.totalWorkouts * workoutDetail.duration}
                   </p>
                 </div>
               </div>

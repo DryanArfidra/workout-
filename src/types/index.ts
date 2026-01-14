@@ -31,14 +31,24 @@ export interface DailyWater {
   target: number;
 }
 
+// Update atau tambahkan tipe untuk DailyWorkout
 export interface DailyWorkout {
   id: string;
   userId: string;
   date: string;
   completed: boolean;
   workoutType: string;
-  duration: number; // dalam menit
+  duration: number;
 }
+
+export type WorkoutType = 
+  | 'chest-triceps' 
+  | 'core' 
+  | 'legs-glutes' 
+  | 'shoulders-back' 
+  | 'full-body-light' 
+  | 'core-stretching' 
+  | 'full-workout';
 
 export interface WalletTransaction {
   id: string;
@@ -67,4 +77,3 @@ export interface ActivityHistory {
 }
 
 export type HistoryPeriod = 'daily' | 'weekly' | 'monthly';
-export type WorkoutType = 'pushup' | 'situp' | 'squat' | 'plank' | 'jumping_jacks';
