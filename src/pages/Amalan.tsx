@@ -26,6 +26,10 @@ const Amalan: React.FC = () => {
   const removeGlass = useWaterStore((state) => state.removeGlass);
   
   const [selectedAmalan, setSelectedAmalan] = useState<string | null>(null);
+  const [isAddingWater, setIsAddingWater] = useState(false);
+  const [isRemovingWater, setIsRemovingWater] = useState(false);
+
+
 
   if (!currentUser) return null;
 
@@ -158,8 +162,11 @@ const Amalan: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4">
             <BeakerIcon className="w-10 h-10 text-blue-600" />
           </div>
-          <p className="text-5xl font-bold text-blue-700 mb-2">
-            {water.current}<span className="text-2xl text-blue-600">/{water.target}</span>
+          <p className="text-5xl font-bold text-blue-700 mb-2 transition-transform duration-300">
+            <span className={isAddingWater ? 'scale-110 inline-block' : ''}>
+              {water.current}
+            </span>
+            <span className="text-2xl text-blue-600">/{water.target}</span>
           </p>
           <p className="text-gray-600">Gelas hari ini</p>
         </div>
@@ -174,28 +181,40 @@ const Amalan: React.FC = () => {
 
         <div className="flex gap-3">
           <button
-            onClick={() => removeGlass(currentUser.id)}
+            onClick={() => {
+              setIsRemovingWater(true);
+              removeGlass(currentUser.id);
+              setTimeout(() => setIsRemovingWater(false), 300);
+            }}
             disabled={water.current === 0}
-            className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+            className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${
               water.current === 0
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : `bg-gray-100 text-gray-700 hover:bg-gray-200 ${
+                    isRemovingWater ? 'scale-95 shadow-inner' : ''
+                  }`
             }`}
           >
             -1 Gelas
           </button>
-          
+
           <button
-            onClick={() => addGlass(currentUser.id)}
-            disabled={water.current >= water.target}
-            className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
-              water.current >= water.target
-                ? 'bg-blue-200 text-blue-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            +1 Gelas
-          </button>
+          onClick={() => {
+            setIsAddingWater(true);
+            addGlass(currentUser.id);
+            setTimeout(() => setIsAddingWater(false), 300);
+          }}
+          disabled={water.current >= water.target}
+          className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${
+            water.current >= water.target
+              ? 'bg-blue-200 text-blue-500 cursor-not-allowed'
+              : `bg-blue-600 text-white hover:bg-blue-700 ${
+                  isAddingWater ? 'scale-105 shadow-lg' : ''
+                }`
+          }`}
+        >
+          +1 Gelas
+        </button>
         </div>
 
         <div className="mt-6 pt-6 border-t border-gray-200">
