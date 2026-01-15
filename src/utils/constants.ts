@@ -1,15 +1,16 @@
 export const ISLAMIC_QUOTES = [
-  "Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain.",
-  "Barangsiapa yang tidak mensyukuri yang sedikit, maka ia tidak akan mampu mensyukuri sesuatu yang banyak.",
-  "Allah tidak membebani seseorang melainkan sesuai dengan kesanggupannya.",
-  "Sesungguhnya Allah lebih menyukai orang-orang yang berbuat baik.",
-  "Janganlah kamu berduka cita, sesungguhnya Allah selalu bersama kita.",
-  "Bersabarlah, karena kesabaran adalah suatu cahaya.",
-  "Amal yang paling dicintai Allah adalah yang terus menerus meskipun sedikit.",
-  "Ilmu tanpa amal seperti pohon tanpa buah.",
-  "Kejujuran membawa kepada kebaikan, dan kebaikan membawa ke surga.",
-  "Sesungguhnya setelah kesulitan ada kemudahan.",
+  "Allah mencintai hamba yang selalu bertawakal kepada-Nya. (QS. Ali Imran: 159)",
+  "Ingatlah Allah, maka hati akan menjadi tenang. (QS. Ar-Ra’d: 28)",
+  "Allah selalu bersama orang-orang yang sabar. (QS. Al-Baqarah: 153)",
+  "Setiap perbuatan baik, sekecil apa pun, akan dibalas oleh Allah. (QS. Az-Zalzalah: 7)",
+  "Berdoalah kepada Allah, niscaya Dia akan mengabulkannya. (QS. Ghafir: 60)",
+  "Allah Maha Pengampun bagi hamba yang mau bertaubat. (QS. Az-Zumar: 53)",
+  "Senyuman kepada saudaramu adalah sedekah. (HR. Tirmidzi)",
+  "Amalan yang paling dicintai Allah adalah yang dilakukan terus-menerus. (HR. Bukhari & Muslim)",
+  "Barang siapa memudahkan urusan orang lain, Allah akan memudahkannya. (HR. Muslim)",
+  "Siapa yang bersyukur, Allah akan menambah nikmatnya. (QS. Ibrahim: 7)",
 ];
+
 
 export const WORKOUT_TRANSLATIONS: Record<string, string> = {
   'chest-triceps': 'Dada & Trisep',
