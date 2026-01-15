@@ -16,16 +16,16 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white border-t border-gray-200">
+    <div className="bg-white border-t border-gray-200 shadow-lg">
       <div className="flex justify-around py-3">
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `flex flex-col items-center px-3 py-2 rounded-lg transition-colors ${
+              `flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? 'text-emerald-600'
+                  ? 'text-emerald-600 bg-emerald-50'
                   : 'text-gray-500 hover:text-emerald-600'
               }`
             }

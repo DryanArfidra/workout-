@@ -5,6 +5,7 @@ import { useAmalanStore } from './store/amalanStore';
 import { useWaterStore } from './store/waterStore';
 import { useWorkoutStore } from './store/workoutStore';
 import { getTodayDate, isSameDay } from './utils/dateUtils';
+import { SidebarProvider } from './context/SidebarContext';
 
 const App: React.FC = () => {
   const resetDailyAmalan = useAmalanStore((state) => state.resetDailyAmalan);
@@ -57,13 +58,20 @@ const App: React.FC = () => {
   // Loading awal aplikasi
   if (!isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="text-gray-500">Loading aplikasi...</span>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <span className="mt-4 block text-gray-500">Memuat aplikasi...</span>
+        </div>
       </div>
     );
   }
 
-  return <AppRoutes />;
+  return (
+    <SidebarProvider>
+      <AppRoutes />
+    </SidebarProvider>
+  );
 };
 
 export default App;
