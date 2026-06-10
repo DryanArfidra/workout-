@@ -132,7 +132,7 @@ export const useWalletStore = create<WalletState>()(
       },
 
       deleteTransaction: (transactionId: string) => {
-        const { transactions, wallets } = get();
+        const { transactions} = get();
         const transaction = transactions.find(t => t.id === transactionId);
         
         if (!transaction) return;
