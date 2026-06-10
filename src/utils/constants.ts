@@ -11,7 +11,6 @@ export const ISLAMIC_QUOTES = [
   "Siapa yang bersyukur, Allah akan menambah nikmatnya. (QS. Ibrahim: 7)",
 ];
 
-
 export const WORKOUT_TRANSLATIONS: Record<string, string> = {
   'chest-triceps': 'Dada & Trisep',
   'core': 'Perut (Core)',
@@ -96,9 +95,39 @@ export const WORKOUT_DETAILS: Record<string, {
   }
 };
 
+// UPDATED: Kategori lengkap untuk keuangan
+export const INCOME_CATEGORIES = [
+  'Gaji',
+  'Bonus',
+  'Freelance',
+  'THR',
+  'Investasi',
+  'Jual Barang',
+  'Hadiah',
+  'Lainnya'
+];
+
+export const EXPENSE_CATEGORIES = [
+  'Makan',
+  'Minum',
+  'Transportasi',
+  'Bensin',
+  'Belanja',
+  'Tagihan',
+  'Listrik',
+  'Internet',
+  'Pulsa',
+  'Hiburan',
+  'Kesehatan',
+  'Pendidikan',
+  'Sedekah',
+  'Lainnya'
+];
+
+// Legacy support untuk kompatibilitas
 export const TRANSACTION_CATEGORIES = {
-  income: ['Gaji', 'Bonus', 'Hadiah', 'Lainnya'],
-  expense: ['Makanan', 'Transportasi', 'Belanja', 'Hiburan', 'Kesehatan', 'Lainnya'],
+  income: INCOME_CATEGORIES,
+  expense: EXPENSE_CATEGORIES,
 };
 
 export const AMALAN_TRANSLATIONS: Record<string, string> = {
@@ -120,4 +149,35 @@ export const getGreeting = (): string => {
   if (hour < 15) return 'Selamat Siang';
   if (hour < 18) return 'Selamat Sore';
   return 'Selamat Malam';
+};
+
+// Utility functions for keuangan
+export const formatCurrency = (amount: number): string => {
+  return `Rp ${amount.toLocaleString('id-ID')}`;
+};
+
+export const getTransactionColor = (type: string): string => {
+  switch (type) {
+    case 'income':
+      return 'text-green-600 bg-green-100';
+    case 'expense':
+      return 'text-red-600 bg-red-100';
+    case 'saving':
+      return 'text-purple-600 bg-purple-100';
+    default:
+      return 'text-gray-600 bg-gray-100';
+  }
+};
+
+export const getTransactionIcon = (type: string): string => {
+  switch (type) {
+    case 'income':
+      return '+';
+    case 'expense':
+      return '-';
+    case 'saving':
+      return '→';
+    default:
+      return '';
+  }
 };

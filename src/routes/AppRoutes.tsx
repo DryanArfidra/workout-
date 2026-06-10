@@ -9,11 +9,13 @@ const Register = lazy(() => import('../pages/Register'));
 const Home = lazy(() => import('../pages/Home'));
 const Amalan = lazy(() => import('../pages/Amalan'));
 const OlahragaTabungan = lazy(() => import('../pages/OlahragaTabungan'));
+const Keuangan = lazy(() => import('../pages/Keuangan'));
 const Profile = lazy(() => import('../pages/Profile'));
 const AmalanHistory = lazy(() => import('../pages/history/AmalanHistory'));
 const WaterHistory = lazy(() => import('../pages/history/WaterHistory'));
 const WorkoutHistory = lazy(() => import('../pages/history/WorkoutHistory'));
 const TabunganHistory = lazy(() => import('../pages/history/TabunganHistory'));
+const KeuanganHistory = lazy(() => import('../pages/history/KeuanganHistory'));
 
 // Loading component for suspense
 const PageLoading = () => (
@@ -36,6 +38,7 @@ const AppRoutes: React.FC = () => {
             <Route index element={<Home />} />
             <Route path="amalan" element={<Amalan />} />
             <Route path="olahraga-tabungan" element={<OlahragaTabungan />} />
+            <Route path="keuangan" element={<Keuangan />} />
             <Route path="profile" element={<Profile />} />
             
             {/* History routes */}
@@ -44,6 +47,7 @@ const AppRoutes: React.FC = () => {
               <Route path="water" element={<WaterHistory />} />
               <Route path="workout" element={<WorkoutHistory />} />
               <Route path="tabungan" element={<TabunganHistory />} />
+              <Route path="keuangan" element={<KeuanganHistory />} />
             </Route>
           </Route>
           

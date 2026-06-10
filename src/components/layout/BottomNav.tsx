@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { 
   HomeIcon, 
   BookOpenIcon, 
-  FireIcon, 
+  CurrencyDollarIcon, 
   UserIcon 
 } from '@heroicons/react/24/outline';
 
@@ -11,7 +11,7 @@ const BottomNav: React.FC = () => {
   const menuItems = [
     { path: '/', icon: HomeIcon, label: 'Home' },
     { path: '/amalan', icon: BookOpenIcon, label: 'Amalan' },
-    { path: '/olahraga-tabungan', icon: FireIcon, label: 'O & T' },
+    { path: '/keuangan', icon: CurrencyDollarIcon, label: 'Keuangan' },
     { path: '/profile', icon: UserIcon, label: 'Profile' },
   ];
 

@@ -47,6 +47,17 @@ export const getMonthRange = (date: Date): { start: string; end: string } => {
   };
 };
 
+// TAMBAHKAN fungsi-fungsi berikut untuk walletStore:
+export const getMonthStart = (date: Date): string => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  return start.toISOString().split('T')[0];
+};
+
+export const getMonthEnd = (date: Date): string => {
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return end.toISOString().split('T')[0];
+};
+
 export const getDaysInMonth = (year: number, month: number): number => {
   return new Date(year, month + 1, 0).getDate();
 };

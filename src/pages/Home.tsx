@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useAmalanStore } from '../store/amalanStore';
 import { useWaterStore } from '../store/waterStore';
@@ -10,7 +11,8 @@ import {
   getGreeting, 
   getRandomQuote,
   WORKOUT_TRANSLATIONS,
-  AMALAN_TRANSLATIONS 
+  AMALAN_TRANSLATIONS,
+  formatCurrency
 } from '../utils/constants';
 import { formatDate, getTodayDate, isSameDay } from '../utils/dateUtils';
 import { 
@@ -19,17 +21,21 @@ import {
   FireIcon,
   CurrencyDollarIcon,
   BeakerIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline';
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
   const currentUser = useAuthStore((state) => state.getCurrentUser());
   
   // Access the raw state to ensure re-renders
   const dailyWater = useWaterStore((state) => state.dailyWater);
   const dailyWorkouts = useWorkoutStore((state) => state.dailyWorkouts);
   const dailyAmalan = useAmalanStore((state) => state.dailyAmalan);
-  const wallets = useWalletStore((state) => state.wallets);
+  const getWallet = useWalletStore((state) => state.getWallet);
+  const getWalletStats = useWalletStore((state) => state.getWalletStats);
   
   // Get actions
   const addGlass = useWaterStore((state) => state.addGlass);
@@ -71,24 +77,27 @@ const Home: React.FC = () => {
       id: 'temp',
       userId: currentUser.id,
       date: today,
-      amalan: {},
+      amalan: {
+        dzikirPagi: false,
+        dzikirPetang: false,
+        tilawah: false,
+        sholatDhuha: false,
+        sholatTahajud: false,
+        sedekah: false,
+      },
       completedCount: 0,
-      totalCount: 0,
+      totalCount: 6,
     };
     
-    const wallet = wallets.find(w => w.userId === currentUser.id) || {
-      id: 'temp',
-      userId: currentUser.id,
-      balance: 0,
-      target: 1000000,
-    };
+    const wallet = getWallet(currentUser.id);
+    const walletStats = getWalletStats(currentUser.id);
     
-    return { water, workout, amalan, wallet };
-  }, [currentUser, dailyWater, dailyWorkouts, dailyAmalan, wallets]);
+    return { water, workout, amalan, wallet, walletStats };
+  }, [currentUser, dailyWater, dailyWorkouts, dailyAmalan, getWallet, getWalletStats]);
 
   if (!currentUser || !todayData) return null;
 
-  const { water, workout, amalan, wallet } = todayData;
+  const { water, workout, amalan, wallet, walletStats } = todayData;
 
   // Handler functions
   const handleAddWater = () => {
@@ -100,7 +109,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl shadow-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">{getGreeting()}, {currentUser.username}!</h1>
@@ -170,7 +179,7 @@ const Home: React.FC = () => {
                 <h3 className="font-semibold text-gray-800">Olahraga</h3>
               </div>
               <p className="text-lg font-bold text-amber-700">
-                {WORKOUT_TRANSLATIONS[workout.workoutType]}
+                {WORKOUT_TRANSLATIONS[workout.workoutType] || 'Olahraga'}
               </p>
               <p className="text-sm text-gray-600">{workout.duration} menit</p>
             </div>
@@ -191,27 +200,40 @@ const Home: React.FC = () => {
           </div>
         </Card>
 
-        {/* Wallet Card */}
-        <Card className="border-l-4 border-l-purple-500">
+        {/* Keuangan Card - UPDATED */}
+        <Card 
+          className="border-l-4 border-l-purple-500 cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate('/keuangan')}
+        >
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center mb-2">
                 <CurrencyDollarIcon className="w-5 h-5 text-purple-600 mr-2" />
-                <h3 className="font-semibold text-gray-800">Tabungan</h3>
+                <h3 className="font-semibold text-gray-800">Keuangan</h3>
               </div>
               <p className="text-2xl font-bold text-purple-700">
-                Rp {wallet.balance.toLocaleString('id-ID')}
+                {formatCurrency(wallet.mainBalance)}
               </p>
-              <p className="text-sm text-gray-600">
-                Target: Rp {wallet.target.toLocaleString('id-ID')}
-              </p>
+              <div className="flex items-center gap-3 mt-2 text-sm">
+                <div className="flex items-center text-green-600">
+                  <ArrowTrendingUpIcon className="w-3 h-3 mr-1" />
+                  {formatCurrency(walletStats.totalIncomeThisMonth)}
+                </div>
+                <div className="flex items-center text-red-600">
+                  <ArrowTrendingDownIcon className="w-3 h-3 mr-1" />
+                  {formatCurrency(walletStats.totalExpenseThisMonth)}
+                </div>
+              </div>
             </div>
           </div>
           <div className="mt-4">
             <ProgressBar 
-              progress={(wallet.balance / wallet.target) * 100} 
+              progress={walletStats.targetProgress} 
               color="purple"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Target Tabungan: {Math.round(walletStats.targetProgress)}%
+            </p>
           </div>
         </Card>
       </div>
@@ -227,7 +249,7 @@ const Home: React.FC = () => {
               }`}
             >
               <span className={`font-medium ${value ? 'text-emerald-700' : 'text-gray-700'}`}>
-                {AMALAN_TRANSLATIONS[key]}
+                {AMALAN_TRANSLATIONS[key] || key}
               </span>
               <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
                 value ? 'bg-emerald-500' : 'bg-gray-300'
@@ -245,7 +267,7 @@ const Home: React.FC = () => {
 
       {/* Quick Actions */}
       <Card title="Aksi Cepat">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button 
             onClick={handleAddWater}
             className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors text-left"
@@ -256,7 +278,7 @@ const Home: React.FC = () => {
               </div>
               <div>
                 <h4 className="font-semibold text-gray-800">Tambah Air</h4>
-                <p className="text-sm text-gray-600">Tambahkan 1 gelas air putih</p>
+                <p className="text-sm text-gray-600">+1 gelas air putih</p>
               </div>
             </div>
           </button>
@@ -271,7 +293,22 @@ const Home: React.FC = () => {
               </div>
               <div>
                 <h4 className="font-semibold text-gray-800">Tandai Olahraga</h4>
-                <p className="text-sm text-gray-600">Tandai sudah olahraga hari ini</p>
+                <p className="text-sm text-gray-600">Selesai olahraga hari ini</p>
+              </div>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/keuangan')}
+            className="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg mr-3">
+                <CurrencyDollarIcon className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-800">Kelola Keuangan</h4>
+                <p className="text-sm text-gray-600">Tambah transaksi</p>
               </div>
             </div>
           </button>
